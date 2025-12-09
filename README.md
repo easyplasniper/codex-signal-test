@@ -16,3 +16,11 @@ python main.py
 
 运行后根据窗口提示完成录制和停止操作。
 
+### 字体显示为方块的解决方法
+- 确保系统已安装支持中文的字体（如 Noto Sans CJK、思源黑体、黑体/雅黑 等）。
+- 如果系统字体列表与默认优先级不匹配，程序会自动扫描所有字体以找到支持中文的字体。
+- 仍无法正常显示时，可将字体文件路径写入环境变量 `RECORDER_FONT_PATH` 后再运行：
+
+  ```bash
+  RECORDER_FONT_PATH=/path/to/your/ChineseFont.ttf python main.py
+  ```
