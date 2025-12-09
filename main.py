@@ -10,15 +10,11 @@ import queue
 import threading
 import time
 from dataclasses import dataclass, field
-from functools import lru_cache
 from typing import List
-
 import matplotlib.pyplot as plt
 import numpy as np
 import sounddevice as sd
-from matplotlib import font_manager
 from matplotlib.animation import FuncAnimation
-from matplotlib.font_manager import FontProperties
 from matplotlib.widgets import Button
 
 
@@ -41,40 +37,6 @@ class RecorderState:
     stop_requested: bool = False
     buffer_queue: queue.Queue[np.ndarray] = field(default_factory=queue.Queue)
     recorded_blocks: List[np.ndarray] = field(default_factory=list)
-
-
-@lru_cache(maxsize=1)
-def get_chinese_font() -> FontProperties | None:
-    """Return a font with Chinese glyph support if available.
-
-    The function checks common system fonts and configures Matplotlib to avoid
-    displaying missing glyph boxes. If no matching font exists, a warning is
-    printed and Matplotlib falls back to its defaults.
-    """
-
-    plt.rcParams["axes.unicode_minus"] = False
-    preferred_fonts = [
-        "SimHei",
-        "Microsoft YaHei",
-        "Noto Sans CJK SC",
-        "Source Han Sans CN",
-        "WenQuanYi Zen Hei",
-    ]
-    available_fonts = {font.name for font in font_manager.fontManager.ttflist}
-
-    for font_name in preferred_fonts:
-        if font_name in available_fonts:
-            plt.rcParams["font.family"] = [font_name] + plt.rcParams.get(
-                "font.family", []
-            )
-            return FontProperties(family=font_name)
-
-    print(
-        "提示：未找到常见的中文字体，文本可能无法正常显示。"
-        "请安装 Noto Sans CJK、思源黑体或黑体/雅黑等字体后重试。"
-    )
-    return None
-
 
 class AudioRecorder:
     """Capture audio blocks and provide data for live visualization."""
@@ -134,20 +96,20 @@ class LivePlotter:
             int(self.config.samplerate * self.config.display_window_seconds),
             dtype=np.float32,
         )
-        font_props = get_chinese_font()
+
         self.fig, self.ax = plt.subplots(figsize=(10, 4))
         plt.subplots_adjust(bottom=0.2)
         self.line, = self.ax.plot(self.live_buffer)
         self.ax.set_ylim(-1, 1)
         self.ax.set_xlim(0, len(self.live_buffer))
-        self.ax.set_xlabel("Sample", fontproperties=font_props)
-        self.ax.set_ylabel("Amplitude", fontproperties=font_props)
-        self.ax.set_title("实时声信号波形（点击停止按钮结束录制）", fontproperties=font_props)
+
+        self.ax.set_xlabel("Sample")
+        self.ax.set_ylabel("Amplitude")
+        self.ax.set_title("实时声信号波形（点击停止按钮结束录制）")
 
         stop_ax = plt.axes([0.45, 0.05, 0.1, 0.075])
         self.stop_button = Button(stop_ax, "停止收集")
-        if font_props is not None:
-            self.stop_button.label.set_fontproperties(font_props)
+
         self.stop_button.on_clicked(self._handle_stop)
 
         self.animation = FuncAnimation(
@@ -177,12 +139,11 @@ class LivePlotter:
 
 def countdown(seconds: int) -> None:
     """Display a simple countdown before recording starts."""
-    font_props = get_chinese_font()
+
     fig, ax = plt.subplots(figsize=(6, 3))
     ax.axis("off")
-    text = ax.text(
-        0.5, 0.5, "", ha="center", va="center", fontsize=28, fontproperties=font_props
-    )
+    text = ax.text(0.5, 0.5, "", ha="center", va="center", fontsize=28)
+
     for remaining in range(seconds, 0, -1):
         text.set_text(f"录制将在 {remaining} 秒后开始")
         plt.pause(1)
@@ -197,7 +158,7 @@ def plot_full_signal(signal: np.ndarray, samplerate: int) -> None:
         print("No audio was recorded.")
         return
 
-    font_props = get_chinese_font()
+
     time_axis = np.arange(signal.size) / samplerate
     freq_domain = np.fft.rfft(signal)
     freqs = np.fft.rfftfreq(signal.size, d=1 / samplerate)
@@ -206,14 +167,16 @@ def plot_full_signal(signal: np.ndarray, samplerate: int) -> None:
     fig, (ax_time, ax_freq) = plt.subplots(2, 1, figsize=(10, 8))
 
     ax_time.plot(time_axis, signal)
-    ax_time.set_title("整段信号的时域波形", fontproperties=font_props)
-    ax_time.set_xlabel("时间 (秒)", fontproperties=font_props)
-    ax_time.set_ylabel("幅值", fontproperties=font_props)
+
+    ax_time.set_title("整段信号的时域波形")
+    ax_time.set_xlabel("时间 (秒)")
+    ax_time.set_ylabel("幅值")
 
     ax_freq.plot(freqs, magnitude)
-    ax_freq.set_title("整段信号的频域幅度谱", fontproperties=font_props)
-    ax_freq.set_xlabel("频率 (Hz)", fontproperties=font_props)
-    ax_freq.set_ylabel("幅度", fontproperties=font_props)
+    ax_freq.set_title("整段信号的频域幅度谱")
+    ax_freq.set_xlabel("频率 (Hz)")
+    ax_freq.set_ylabel("幅度")
+
     ax_freq.set_xlim(0, samplerate / 2)
 
     plt.tight_layout()

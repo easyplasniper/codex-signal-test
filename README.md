@@ -14,4 +14,5 @@ pip install matplotlib sounddevice numpy
 python main.py
 ```
 
-运行后根据窗口提示完成录制和停止操作。若中文标题显示为方块，请安装支持中文的字体（如 Noto Sans CJK、思源黑体、黑体/雅黑 等），并重新运行程序。
+运行后根据窗口提示完成录制和停止操作。
+
