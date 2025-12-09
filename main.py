@@ -11,7 +11,6 @@ import threading
 import time
 from dataclasses import dataclass, field
 from typing import List
-
 import matplotlib.pyplot as plt
 import numpy as np
 import sounddevice as sd
@@ -38,7 +37,6 @@ class RecorderState:
     stop_requested: bool = False
     buffer_queue: queue.Queue[np.ndarray] = field(default_factory=queue.Queue)
     recorded_blocks: List[np.ndarray] = field(default_factory=list)
-
 
 class AudioRecorder:
     """Capture audio blocks and provide data for live visualization."""
@@ -98,17 +96,20 @@ class LivePlotter:
             int(self.config.samplerate * self.config.display_window_seconds),
             dtype=np.float32,
         )
+
         self.fig, self.ax = plt.subplots(figsize=(10, 4))
         plt.subplots_adjust(bottom=0.2)
         self.line, = self.ax.plot(self.live_buffer)
         self.ax.set_ylim(-1, 1)
         self.ax.set_xlim(0, len(self.live_buffer))
+
         self.ax.set_xlabel("Sample")
         self.ax.set_ylabel("Amplitude")
         self.ax.set_title("实时声信号波形（点击停止按钮结束录制）")
 
         stop_ax = plt.axes([0.45, 0.05, 0.1, 0.075])
         self.stop_button = Button(stop_ax, "停止收集")
+
         self.stop_button.on_clicked(self._handle_stop)
 
         self.animation = FuncAnimation(
@@ -138,9 +139,11 @@ class LivePlotter:
 
 def countdown(seconds: int) -> None:
     """Display a simple countdown before recording starts."""
+
     fig, ax = plt.subplots(figsize=(6, 3))
     ax.axis("off")
     text = ax.text(0.5, 0.5, "", ha="center", va="center", fontsize=28)
+
     for remaining in range(seconds, 0, -1):
         text.set_text(f"录制将在 {remaining} 秒后开始")
         plt.pause(1)
@@ -155,6 +158,7 @@ def plot_full_signal(signal: np.ndarray, samplerate: int) -> None:
         print("No audio was recorded.")
         return
 
+
     time_axis = np.arange(signal.size) / samplerate
     freq_domain = np.fft.rfft(signal)
     freqs = np.fft.rfftfreq(signal.size, d=1 / samplerate)
@@ -163,6 +167,7 @@ def plot_full_signal(signal: np.ndarray, samplerate: int) -> None:
     fig, (ax_time, ax_freq) = plt.subplots(2, 1, figsize=(10, 8))
 
     ax_time.plot(time_axis, signal)
+
     ax_time.set_title("整段信号的时域波形")
     ax_time.set_xlabel("时间 (秒)")
     ax_time.set_ylabel("幅值")
@@ -171,6 +176,7 @@ def plot_full_signal(signal: np.ndarray, samplerate: int) -> None:
     ax_freq.set_title("整段信号的频域幅度谱")
     ax_freq.set_xlabel("频率 (Hz)")
     ax_freq.set_ylabel("幅度")
+
     ax_freq.set_xlim(0, samplerate / 2)
 
     plt.tight_layout()
